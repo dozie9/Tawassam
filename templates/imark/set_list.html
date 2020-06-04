@@ -1,0 +1,19 @@
+{% extends 'imark/base.html' %}
+
+{% block content %}
+<table>
+<tr>
+    <th>SN</th>
+    <th>title</th>
+    <th>description</th>
+</tr>
+{% for set in set_list %}
+<tr>
+    <td>{{ forloop.counter }}</td>
+    <td><a href="{% url 'set_det' set.id %}">{{ set.title }}</a></td>
+    <td>{{ set.description }}</td>
+</tr>
+{% endfor %}
+</table>
+
+{% endblock %}

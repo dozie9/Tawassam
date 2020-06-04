@@ -27,6 +27,7 @@ urlpatterns = [
     path('', include('main.urls')),
     path('CVS/', include('CVS.urls')),
     path('', include('accounts.urls')),
+    path('imark/', include('imark.urls')),
 
 ]
 urlpatterns += staticfiles_urlpatterns()

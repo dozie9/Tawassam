@@ -11,11 +11,17 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 import django_heroku
 import os
+import environ
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATE_DIR = os.path.join(BASE_DIR,'templates')
+
+env = environ.Env()
+# reading .env file
+env.read_env(env.str('ENV_PATH', os.path.join(BASE_DIR, '.env')))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
@@ -42,6 +48,7 @@ INSTALLED_APPS = [
     'accounts',
     #blocks
     'CVS',
+    'imark',
 
 ]
 
@@ -86,7 +93,7 @@ DATABASES = {
         'HOST': '127.0.0.1',
         'PORT': '3306',
         'USER': 'root',
-        'PASSWORD': 'Zero/One',
+        'PASSWORD': env("DATABASE_PASSWORD"),
     }
 }
 
@@ -134,7 +141,7 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
 #Media
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 MEDIA_ROOT=os.path.join(BASE_DIR, 'media')
 #Heroku
 django_heroku.settings(locals())

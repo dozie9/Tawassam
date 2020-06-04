@@ -1,0 +1,12 @@
+{% extends 'imark/base.html' %}
+
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button>submit</button>
+{% if object %}
+    <a href="{% url 'img_delete' object.id %}">delete</a>
+{% endif %}
+</form>
+{% endblock %}

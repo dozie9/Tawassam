@@ -1,0 +1,28 @@
+{% extends 'imark/base.html' %}
+
+{% block content %}
+<p><img id="img-{{ img.id }}" src="{{ img.image.url }}"></p>
+    <form method="post">
+        {% csrf_token %}
+        {{ note_form.as_p }}
+    <button>submit</button>
+    </form>
+
+{% endblock %}
+{% block js %}
+
+    <script>
+        $(document).ready(function () {
+           $("#img-{{img.id}}").on("click", function (event) {
+                var x = event.pageX - this.offsetLeft;
+                var y = event.pageY - this.offsetTop;
+                var xDom = document.getElementById('id_x_dim')
+                var yDom = document.getElementById('id_y_dim')
+                xDom.value = x
+                yDom.value = y
+                //alert("X Coordinate: " + x + " Y Coordinate: " + y);
+            });
+            console.log('here')
+        });
+    </script>
+{% endblock %}

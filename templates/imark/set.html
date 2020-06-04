@@ -1,0 +1,48 @@
+{% extends 'imark/base.html' %}
+{% block css %}
+    <style>
+        .smll {
+            width: 4em;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    {{ object }} <a href="{% url 'test_form' object.id %}">add image</a>
+    {% comment %}
+<div>
+{% for img in object.images.all %}
+    <p><img class="smll" src="{{ img.image.url }}"> <a href="{% url 'add_note' set_id=set.id img_id=img.id %}">add note</a></p>
+{% endfor %}
+</div>
+{% endcomment %}
+    <div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+    </div>
+    {% for img in page_obj %}
+        <div>
+            <p>
+                <a href="{% url 'add_note' set_id=set.id img_id=img.id %}">add note</a>
+                <a href="{% url 'img_update' img.id %}">update image</a>
+                <a href="{% url 'img_det' img.id %}">view notes</a>
+            </p>
+            <img src="{{ img.image.url }}">
+        </div>
+    {% endfor %}
+
+    {#    <p>{{ view.kwargs.pk }}</p>#}
+{% endblock %}

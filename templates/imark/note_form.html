@@ -1,0 +1,60 @@
+{% extends 'imark/base.html' %}
+{% load static %}
+{% block css %}
+    <link href="{% static 'css/interactive-image.min.css' %}" rel="stylesheet">
+
+    <style>
+    .interactive-image {
+        margin: auto;
+            width: {{ img.image.width }}px;
+            height: {{ img.image.height }}px;
+        background: url("{{ img.image.url }}");
+    }
+    </style>
+{% endblock %}
+{% block content %}
+    <div id="img-{{ img.id }}" class="interactive-image"></div>
+{#    <p><img id="img-{{ img.id }}" src="{{ img.image.url }}"></p>#}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button>submit</button>
+{% if object %}
+    <a href="{% url 'note_delete' object.id %}">delete</a>
+{% endif %}
+
+</form>
+{% endblock %}
+
+{% block js %}
+<script src="{% static 'js/interactive-image.min.js' %}"></script>
+    <script>
+        $(document).ready(function () {
+            // gets point on image when image is clicked and fills them in the form
+           $("#img-{{img.id}}").on("click", function (event) {
+                var x = event.pageX - this.offsetLeft;
+                var y = event.pageY - this.offsetTop;
+                var xDom = document.getElementById('id_x_dim')
+                var yDom = document.getElementById('id_y_dim')
+                xDom.value = x
+                yDom.value = y
+               var note = [
+                   {
+                       type: 'text',
+                       title: document.getElementById('id_title').value,
+                       description: document.getElementById('id_note').value,
+                       position: {
+                               left: x,
+                               top: y
+                           }
+
+                   }
+               ]
+               $('.interactive-image').interactiveImage(note, {debug: true})
+                alert("X Coordinate: " + x + " Y Coordinate: " + y + " selected.");
+                console.log(note)
+            });
+
+        });
+    </script>
+{% endblock %}
