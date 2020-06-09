@@ -4,7 +4,7 @@ from imark import views
 
 urlpatterns = [
     path('test/', views.test, name='test'),
-    path('add-img/<int:set_id>', views.ImgAddView.as_view(), name='test_form'),
+    path('add-img/<int:set_id>', views.ImgAddView.as_view(), name='add-img'),
     path('add-note/<int:set_id>/<int:img_id>', views.AddNoteView.as_view(), name='add_note'),
     path('create/set/', views.SetCreateView.as_view(), name='set_create'),
     path('set/list/', views.SetListView.as_view(), name='set_list'),

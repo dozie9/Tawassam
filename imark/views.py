@@ -1,5 +1,6 @@
 import json
 
+from django.core import serializers
 from django.core.paginator import Paginator
 from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -20,7 +21,12 @@ def test(request):
 class SetCreateView(CreateView):
     form_class = SetCreateForm
     template_name = 'imark/set_form.html'
-    success_url = reverse_lazy('set_list')
+    # success_url = reverse_lazy('set_list')
+
+    def get_success_url(self):
+        set_id = self.object.id
+        print(set_id)
+        return reverse('add-img', args=[set_id])
 
     def form_valid(self, form):
         form.instance.author_id = self.request.user.id
@@ -43,10 +49,14 @@ class SetDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         images = self.object.images.all()
-        paginator = Paginator(images, 1)
-        page_number = self.request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        context['page_obj'] = page_obj
+        all_notes = serializers.serialize('json', Note.objects.all())
+        images_json = serializers.serialize('json', images)
+        # paginator = Paginator(images, 1)
+        # page_number = self.request.GET.get('page')
+        # page_obj = paginator.get_page(page_number)
+        # context['page_obj'] = page_obj
+        context['images_json'] = images_json
+        context['all_notes'] = all_notes
         return context
 
 
@@ -151,7 +161,8 @@ class ImgAddView(TemplateView):
 
                 img_obj.notes.add(note_obj)
                 set_obj.images.add(img_obj)
-                return redirect('set_list')
+                print(self.kwargs.get('set_id'))
+                return redirect('set_det', pk=self.kwargs.get('set_id'))
         else:
             return render(request, self.template_name, {'img_form': img_form, 'note_form':note_form})
 

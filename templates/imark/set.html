@@ -1,14 +1,31 @@
 {% extends 'imark/base.html' %}
+{% load static %}
 {% block css %}
+    <link href="{% static 'css/interactive-image.min.css' %}" rel="stylesheet">
+    {#    <link href="{% static 'css/jquery.hotspot.css' %}" rel="stylesheet">#}
+
     <style>
-        .smll {
-            width: 4em;
+        .interactive-image {
+            margin: auto;
+            width: {{ img.image.width }}px;
+            height: {{ img.image.height }}px;
+            background: url("{{ img.image.url }}") no-repeat center;
         }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        .img-magnifier-container {
+            position: relative;
+        }
+
+
     </style>
 {% endblock %}
 
 {% block content %}
-    {{ object }} <a href="{% url 'test_form' object.id %}">add image</a>
+    {{ object }} <a href="{% url 'add-img' object.id %}">add image</a>
     {% comment %}
 <div>
 {% for img in object.images.all %}
@@ -16,23 +33,23 @@
 {% endfor %}
 </div>
 {% endcomment %}
-    <div class="pagination">
-    <span class="step-links">
-        {% if page_obj.has_previous %}
-            <a href="?page=1">&laquo; first</a>
-            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
-        {% endif %}
+    {% comment %}<div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1">&laquo; first</a>
+                <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
 
-        <span class="current">
-            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}">next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+            {% endif %}
         </span>
-
-        {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">next</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
-        {% endif %}
-    </span>
-    </div>
+    </div>{% endcomment %}
     {% for img in page_obj %}
         <div>
             <p>
@@ -40,9 +57,130 @@
                 <a href="{% url 'img_update' img.id %}">update image</a>
                 <a href="{% url 'img_det' img.id %}">view notes</a>
             </p>
-            <img src="{{ img.image.url }}">
         </div>
+        <button onclick="displayImage('left')">&lt;</button>
+        <button onclick="displayImage('right')">&gt;</button>
+        <div id="image-hotspots" class="img-magnifier-container">
+            <img id="set-img" src="">
+        </div>
+        <button onclick="zoomout()">-</button>Zoom<button onclick="zoomin()">+</button>
     {% endfor %}
 
-    {#    <p>{{ view.kwargs.pk }}</p>#}
+
+{% endblock %}
+{% block js %}
+    <script src="{% static 'js/interactive-image.min.js' %}"></script>
+
+
+    <script>
+
+        const setImages = {{ images_json | safe}};
+
+        const allNotes = {{ all_notes | safe}};
+
+        let imageNotes = allNotes.filter(f => setImages[0].fields.notes.includes(f.pk))
+
+        function getNotes(i) {
+            let imageNotes = allNotes.filter(f => setImages[i].fields.notes.includes(f.pk))
+            let hotSpots = document.querySelectorAll('.hotspot')
+            let notes = imageNotes.map(note => {
+                return {
+                    title: note.fields.title,
+                    type: 'text',
+                    description: note.fields.note,
+                    position: {
+                        left: note.fields.x_dim,
+                        top: note.fields.y_dim
+                    },
+                    link: {
+                        url: `/imark/note-update/${note.pk}`,
+                        label: 'update'
+                    }
+                }
+            })
+            $('.img-magnifier-container').interactiveImage(notes, {debug: true})
+            {#$('#image-hotspots').hotspot({data:notes})#}
+            hotSpots.forEach(item => {
+                item.remove()
+            })
+
+            //console.log(notes, hotSpots, hotSpots[0])
+        }
+
+        //console.log(setImages[0].fields)
+        //console.log(imageNotes)
+        let index = 0;
+        let imgElm = document.getElementById('set-img')
+        imgElm.src = '/media/' + setImages[0].fields.image
+        getNotes(index)
+// changes image
+        function displayImage(direction) {
+            if (direction == 'left') {
+                index--
+                //console.log(index)
+                //getNotes(index)
+            } else {
+                index++;
+                index %= setImages.length;
+                //getNotes(index)
+            }
+            if (index < 0) {
+                index = setImages.length - 1;
+            }
+            imgElm.src = '/media/' + setImages[index].fields.image
+            getNotes(index)
+            console.log(setImages[index].fields)
+
+        }
+
+        function zoomin() {
+            let zoomPercentage = 0.1
+            var GFG = document.getElementById("set-img");
+            var currWidth = GFG.clientWidth;
+            GFG.style.width = (currWidth + currWidth*zoomPercentage) + "px";
+            let hotSpots = document.querySelectorAll('.hotspot')
+            let itemSpot = document.querySelectorAll('.item')
+
+            hotSpots.forEach(item => {
+                let itemStyleLeft = parseFloat(item.style.left.substring(0, item.style.left.length-2 ))
+                let itemStyleTop = parseFloat(item.style.top.substring(0, item.style.left.length-2 ))
+                item.style.left = `${itemStyleLeft+itemStyleLeft*zoomPercentage}px`
+                item.style.top = `${itemStyleTop+itemStyleTop*zoomPercentage}px`
+                console.log(item.style.left, itemStyleLeft, itemStyleTop)
+            })
+            itemSpot.forEach(item => {
+                let itemStyleLeft = parseFloat(item.style.left.substring(0, item.style.left.length-2 ))
+                let itemStyleTop = parseFloat(item.style.top.substring(0, item.style.left.length-2 ))
+                item.style.left = `${itemStyleLeft+itemStyleLeft*zoomPercentage}px`
+                item.style.top = `${itemStyleTop+itemStyleTop*zoomPercentage}px`
+                console.log(item.style.left, itemStyleLeft, itemStyleTop)
+            })
+
+        }
+// Zoom function
+        function zoomout() {
+            let zoomPercentage = 0.1
+            var GFG = document.getElementById("set-img");
+            var currWidth = GFG.clientWidth;
+            GFG.style.width = (currWidth - currWidth*zoomPercentage) + "px";
+            let hotSpots = document.querySelectorAll('.hotspot')
+            let itemSpot = document.querySelectorAll('.item')
+            // moves the notes point as page is zoomed
+
+            hotSpots.forEach(item => {
+                let itemStyleLeft = parseFloat(item.style.left.substring(0, item.style.left.length-2 ))
+                let itemStyleTop = parseFloat(item.style.top.substring(0, item.style.left.length-2 ))
+                item.style.left = `${itemStyleLeft-itemStyleLeft*zoomPercentage}px`
+                item.style.top = `${itemStyleTop-itemStyleTop*zoomPercentage}px`
+                console.log(item.style.left, itemStyleLeft, itemStyleTop)
+            })
+            itemSpot.forEach(item => {
+                let itemStyleLeft = parseFloat(item.style.left.substring(0, item.style.left.length-2 ))
+                let itemStyleTop = parseFloat(item.style.top.substring(0, item.style.left.length-2 ))
+                item.style.left = `${itemStyleLeft-itemStyleLeft*zoomPercentage}px`
+                item.style.top = `${itemStyleTop-itemStyleTop*zoomPercentage}px`
+                console.log(item.style.left, itemStyleLeft, itemStyleTop)
+            })
+        }
+    </script>
 {% endblock %}
