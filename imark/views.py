@@ -51,10 +51,10 @@ class SetDetailView(DetailView):
         images = self.object.images.all()
         all_notes = serializers.serialize('json', Note.objects.all())
         images_json = serializers.serialize('json', images)
-        # paginator = Paginator(images, 1)
-        # page_number = self.request.GET.get('page')
-        # page_obj = paginator.get_page(page_number)
-        # context['page_obj'] = page_obj
+        paginator = Paginator(images, 1)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        context['page_obj'] = page_obj
         context['images_json'] = images_json
         context['all_notes'] = all_notes
         return context
